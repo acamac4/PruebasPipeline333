@@ -1,72 +1,96 @@
-name: Sumar dos números y mostrar mensaje
+name: Calcular Edad Para Personas
  
 on:
 
-  push:
-
-    branches:
-
-      - 'test/**'  # 5. Filtro para ramas que empiecen con test/
- 
+  workflow_dispatch:
+    inputs:
+      dia:
+        description: 'DIA NACIMIENTO'
+        required: true
+        default: '1'
+      mes:
+        description: 'MES NACIMIENTO'
+        required: true
+        default: '1'
+      ano:
+        description: 'AÑO NACIMIENTO'
+        required: true
+        default: '2021'
 env:
+  LIM_NINEZ: 13
+  LIM_ADOLESCENCIA: 17
+  LIM_ADULTO_JOVEN: 35
+  LIM_ADULTO: 64 
 
-  NUM1: ${{ secrets.NUM1 }}  # 6. Variables de entorno del repositorio (puedes usar secrets o envs)
-
-  NUM2: ${{ secrets.NUM2 }}
- 
 jobs:
 
-  suma:
+  edad:
 
-    name: Calcular la suma
-
-    runs-on: ubuntu-latest  # 3. Runner
-
-    steps:
-
-      - name: Realizar suma
-
-        run: |
-
-          echo "Calculando suma de $NUM1 y $NUM2"
-
-          SUM=$((NUM1 + NUM2))
-
-          echo "Suma: $SUM"
-
-          echo "SUMA_RESULTADO=$SUM" >> $GITHUB_ENV  # Pasamos a siguiente job
-
-        env:
-
-          NUM1: ${{ env.NUM1 }}
-
-          NUM2: ${{ env.NUM2 }}
- 
-  verificar-resultado:
-
-    name: Verificar si la suma es mayor que 10
+    name: Calcular la edad
 
     runs-on: ubuntu-latest
 
-    needs: suma  # 7. Dependencia entre jobs
+    outputs:
+      pasarEdad: ${{ steps.calculo.outputs.pasarEdad }}
 
     steps:
 
-      - name: Mostrar mensaje basado en el resultado
-
+      - name: Calcular edad escrita
+        id: calculo
         run: |
+          dia=${{ github.event.inputs.dia }}
+          mes=${{ github.event.inputs.mes }}
+          ano=${{ github.event.inputs.ano }}
 
-          if [ "$SUMA_RESULTADO" -gt 10 ]; then
+          hoy=$(date +%Y-%m-%d) 
+          nacimiento="$ano-$mes-$dia"
 
-            echo "La suma es mayor que 10: $SUMA_RESULTADO"
+          ano_actual=$(date +%Y)
+          mes_actual=$(date +%m)
+          dia_actual=$(date +%d)
 
-          else
+          edad1=$((ano_actual - ano))
 
-            echo "La suma es menor o igual a 10: $SUMA_RESULTADO"
-
+          if [[ "$mes_actual" -lt "$mes" ]] || { [[ "$mes_actual" -eq "$mes" ]] && [[ "$dia_actual" -lt "$dia" ]]; }; then
+          edad1=$((edad1 - 1))
           fi
 
-        env:
+          echo "Tienes $edad1 anos."
+          echo "pasarEdad=$edad1" >> $GITHUB_OUTPUT
 
-          SUMA_RESULTADO: ${{ env.SUMA_RESULTADO }}  # Se hereda del job anterior
+  etapa:
+
+    name: Verificar etapa
+
+    runs-on: ubuntu-latest
+
+    needs: edad 
+
+    outputs:
+      clasificacion: ${{ steps.etapa_id.outputs.clasificacion }}
+
+    steps:
+
+      - name: etapa obtenida
+        id: etapa_id
+        run: |
+          edadviejo=${{ needs.edad.outputs.pasarEdad }}
+
+          if [ "$edadviejo" -ge 5 ] && [ "$edadviejo" -le "$LIM_NINEZ" ]; then
+            etapa='esta en etapa de ninez'
+          elif [ "$edadviejo" -ge 14 ] && [ "$edadviejo" -le "$LIM_ADOLESCENCIA" ]; then
+            etapa='esta en etapa de adolescencia'
+          elif [ "$edadviejo" -ge 18 ] && [ "$edadviejo" -le "$LIM_ADULTO_JOVEN" ]; then
+            etapa='esta en etapa de adulto joven'
+          elif [ "$edadviejo" -ge 36 ] && [ "$edadviejo" -le "$LIM_ADULTO" ]; then
+            etapa='esta en etapa de adulto'
+          elif [ "$edadviejo" -ge 65 ]; then
+            etapa='esta en etapa de tercera edad'
+          else
+            etapa='etapa fuera de rango'
+          fi
+
+          echo "clasificacion=$etapa" >> $GITHUB_OUTPUT
+          echo "Etapa: $etapa"
+
  
