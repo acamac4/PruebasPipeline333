@@ -2,7 +2,7 @@ name: Calcular Edad Para Personas
  
 on:
 
-  workflow_dispatch:
+  push:
     inputs:
       dia:
         description: 'DIA NACIMIENTO'
