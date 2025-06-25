@@ -15,12 +15,6 @@ on:
         description: 'ANIO NACIMIENTO'
         required: true
         default: '2021'
-env:
-  LIM_NINEZ: 13
-  LIM_ADOLESCENCIA: 17
-  LIM_ADULTO_JOVEN: 35
-  LIM_ADULTO: 64 
-
 jobs:
   edad:
     name: Calcular la edad
@@ -60,10 +54,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: edad 
     env:
-      LIM_NINEZ: ${{ env.LIM_NINEZ }}
-      LIM_ADOLESCENCIA: ${{ env.LIM_ADOLESCENCIA }}
-      LIM_ADULTO_JOVEN: ${{ env.LIM_ADULTO_JOVEN }}
-      LIM_ADULTO: ${{ env.LIM_ADULTO }}
+      LIM_NINEZ: ${{ vars.LIM_NINEZ}}
+      LIM_ADOLESCENCIA: ${{ vars.LIM_ADOLESCENCIA}}
+      LIM_ADULTO_JOVEN: ${{ vars.LIM_ADULTO_JOVEN}}
+      LIM_ADULTO: ${{ vars.LIM_ADULTO}} 
     outputs:
       clasificacion: ${{ steps.etapa_id.outputs.clasificacion }}
     steps:
