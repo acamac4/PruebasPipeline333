@@ -1,8 +1,7 @@
 name: Calcular Edad Para Personas
  
 on:
-
-  push:
+  workflow_dispatch:
     inputs:
       dia:
         description: 'DIA NACIMIENTO'
@@ -13,7 +12,7 @@ on:
         required: true
         default: '1'
       ano:
-        description: 'AÑO NACIMIENTO'
+        description: 'ANIO NACIMIENTO'
         required: true
         default: '2021'
 env:
@@ -23,24 +22,22 @@ env:
   LIM_ADULTO: 64 
 
 jobs:
-
   edad:
-
     name: Calcular la edad
-
     runs-on: ubuntu-latest
-
     outputs:
       pasarEdad: ${{ steps.calculo.outputs.pasarEdad }}
-
     steps:
-
       - name: Calcular edad escrita
         id: calculo
         run: |
           dia=${{ github.event.inputs.dia }}
           mes=${{ github.event.inputs.mes }}
           ano=${{ github.event.inputs.ano }}
+
+          dia=$((10#$dia))
+          mes=$((10#$mes))
+          ano=$((10#$ano))
 
           hoy=$(date +%Y-%m-%d) 
           nacimiento="$ano-$mes-$dia"
@@ -59,18 +56,17 @@ jobs:
           echo "pasarEdad=$edad1" >> $GITHUB_OUTPUT
 
   etapa:
-
     name: Verificar etapa
-
     runs-on: ubuntu-latest
-
     needs: edad 
-
+    env:
+      LIM_NINEZ: ${{ env.LIM_NINEZ }}
+      LIM_ADOLESCENCIA: ${{ env.LIM_ADOLESCENCIA }}
+      LIM_ADULTO_JOVEN: ${{ env.LIM_ADULTO_JOVEN }}
+      LIM_ADULTO: ${{ env.LIM_ADULTO }}
     outputs:
       clasificacion: ${{ steps.etapa_id.outputs.clasificacion }}
-
     steps:
-
       - name: etapa obtenida
         id: etapa_id
         run: |
@@ -78,13 +74,13 @@ jobs:
 
           if [ "$edadviejo" -ge 5 ] && [ "$edadviejo" -le "$LIM_NINEZ" ]; then
             etapa='esta en etapa de ninez'
-          elif [ "$edadviejo" -ge 14 ] && [ "$edadviejo" -le "$LIM_ADOLESCENCIA" ]; then
+          elif [ "$edadviejo" -gt "$LIM_NINEZ" ] && [ "$edadviejo" -le "$LIM_ADOLESCENCIA" ]; then
             etapa='esta en etapa de adolescencia'
-          elif [ "$edadviejo" -ge 18 ] && [ "$edadviejo" -le "$LIM_ADULTO_JOVEN" ]; then
+          elif [ "$edadviejo" -gt "$LIM_ADOLESCENCIA" ] && [ "$edadviejo" -le "$LIM_ADULTO_JOVEN" ]; then
             etapa='esta en etapa de adulto joven'
-          elif [ "$edadviejo" -ge 36 ] && [ "$edadviejo" -le "$LIM_ADULTO" ]; then
+          elif [ "$edadviejo" -gt "$LIM_ADULTO_JOVEN" ] && [ "$edadviejo" -le "$LIM_ADULTO" ]; then
             etapa='esta en etapa de adulto'
-          elif [ "$edadviejo" -ge 65 ]; then
+          elif [ "$edadviejo" -gt "$LIM_ADULTO" ]; then
             etapa='esta en etapa de tercera edad'
           else
             etapa='etapa fuera de rango'
