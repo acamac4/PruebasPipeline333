@@ -46,7 +46,7 @@ jobs:
           edad1=$((edad1 - 1))
           fi
 
-          echo "Tienes $edad1 anos."
+          echo "Tienes $edad1 años."
           echo "pasarEdad=$edad1" >> $GITHUB_OUTPUT
 
   etapa:
