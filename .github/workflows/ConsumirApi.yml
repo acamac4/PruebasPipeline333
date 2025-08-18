@@ -8,9 +8,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Obtener datos de Wikimedia OnThisDay
+      - name: Instalar jq (por si no está)
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Obtener datos y contar noticias destacadas
         run: |
-          LANGUAGE="es"
+          set -x  # Habilita modo depuración para ver errores línea por línea
+
+          LANGUAGE="en"
           MONTH=$(date +%m)
           DAY=$(date +%d)
 
@@ -19,10 +24,20 @@ jobs:
           RESPONSE=$(curl --silent --request GET \
             --url "https://api.wikimedia.org/feed/v1/wikipedia/${LANGUAGE}/onthisday/selected/${MONTH}/${DAY}" \
             --header "accept: application/json" \
-            --header "User-Agent: GitHubActionBot/1.0 (correo@correo.com)"
-            
+            --header "User-Agent: GitHubActionBot/1.0 (you@example.com)")
+
+          echo "Respuesta recibida:"
+          echo "$RESPONSE"
+
+          # Validar que la respuesta no esté vacía
+          if [ -z "$RESPONSE" ]; then
+            echo "ERROR: La respuesta está vacía. Falló la consulta."
+            exit 1
+          fi
+
           COUNT=$(echo "$RESPONSE" | jq '.selected | length')
 
           echo "Número de eventos destacados en esta fecha: $COUNT"
+
 
 
