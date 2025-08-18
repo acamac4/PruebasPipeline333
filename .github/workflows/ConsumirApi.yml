@@ -16,9 +16,13 @@ jobs:
 
           echo "Consultando: $LANGUAGE $MONTH $DAY"
 
-          curl --request GET \
+          RESPONSE=$(curl --silent --request GET \
             --url "https://api.wikimedia.org/feed/v1/wikipedia/${LANGUAGE}/onthisday/selected/${MONTH}/${DAY}" \
             --header "accept: application/json" \
-            --header "User-Agent: GitHubActionBot/1.0 (yourname@example.com)"
+            --header "User-Agent: GitHubActionBot/1.0 (correo@correo.com)"
+            
+          COUNT=$(echo "$RESPONSE" | jq '.selected | length')
+
+          echo "Número de eventos destacados en esta fecha: $COUNT"
 
 
