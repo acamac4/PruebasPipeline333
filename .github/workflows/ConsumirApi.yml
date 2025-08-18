@@ -36,7 +36,8 @@ jobs:
           echo "Número de eventos destacados en esta fecha: $COUNT"
 
           echo "Títulos de eventos destacados:"
-          echo "$RESPONSE" | jq -r '.selected[].pages[].titles.display'
+          echo "$RESPONSE" | jq -r '.selected[].text'
+
 
 
 
