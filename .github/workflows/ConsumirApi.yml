@@ -1,0 +1,19 @@
+name: Wikipedia OnThisDay
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fetch-events:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar a la API de Wikipedia
+        run: |
+          LANGUAGE="es"
+          TYPE="events"
+          MM=$(date +%m)
+          DD=$(date +%d)
+          URL="https://${LANGUAGE}.wikipedia.org/api/rest_v1/feed/onthisday/${TYPE}/${MM}/${DD}"
+          echo "URL: $URL"
+          RESPONSE=$(curl -s "$URL")
+          echo "$RESPONSE"
