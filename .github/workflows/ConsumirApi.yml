@@ -4,17 +4,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  fetch-events:
+  fetch-wikimedia:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Llamar a la API de Wikipedia
+      - name: Obtener datos de Wikimedia OnThisDay
         run: |
           LANGUAGE="es"
-          TYPE="events"
-          MM=$(date +%m)
-          DD=$(date +%d)
-          URL="https://${LANGUAGE}.wikipedia.org/api/rest_v1/feed/onthisday/${TYPE}/${MM}/${DD}"
-          echo "URL: $URL"
-          RESPONSE=$(curl -s "$URL")
-          echo "$RESPONSE" | jq -r '.events[]?.pages[0]?.content_urls.desktop.page // "No disponible"'
+          MONTH=$(date +%m)
+          DAY=$(date +%d)
+
+          echo "Consultando: $LANGUAGE $MONTH $DAY"
+
+          curl --request GET \
+            --url "https://api.wikimedia.org/feed/v1/wikipedia/${LANGUAGE}/onthisday/selected/${MONTH}/${DAY}" \
+            --header "accept: application/json" \
+            --header "User-Agent: GitHubActionBot/1.0 (yourname@example.com)"
+
 
