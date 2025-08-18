@@ -16,4 +16,5 @@ jobs:
           URL="https://${LANGUAGE}.wikipedia.org/api/rest_v1/feed/onthisday/${TYPE}/${MM}/${DD}"
           echo "URL: $URL"
           RESPONSE=$(curl -s "$URL")
-          echo "$RESPONSE"
+          echo "$RESPONSE" | jq -r '.events[]?.pages[0]?.content_urls.desktop.page // "No disponible"'
+
