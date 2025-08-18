@@ -33,8 +33,11 @@ jobs:
           fi
 
           COUNT=$(echo "$RESPONSE" | jq '.selected | length')
-
           echo "Número de eventos destacados en esta fecha: $COUNT"
+
+          echo "Títulos de eventos destacados:"
+          echo "$RESPONSE" | jq -r '.selected[].pages[].titles.display'
+
 
 
 
