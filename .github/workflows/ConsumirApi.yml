@@ -8,14 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Instalar jq (por si no está)
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Obtener datos y contar noticias destacadas
         run: |
           set -x  # Habilita modo depuración para ver errores línea por línea
 
-          LANGUAGE="en"
+          LANGUAGE="es"
           MONTH=$(date +%m)
           DAY=$(date +%d)
 
@@ -38,6 +35,7 @@ jobs:
           COUNT=$(echo "$RESPONSE" | jq '.selected | length')
 
           echo "Número de eventos destacados en esta fecha: $COUNT"
+
 
 
 
