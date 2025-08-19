@@ -13,7 +13,7 @@ on:
         default: '01'
 
 jobs:
-  buscar-y-preparar:
+  fetch-and-prepare:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -33,9 +33,6 @@ jobs:
           RESPONSE=$(curl -s "$URL")
           echo "$RESPONSE" > $FILENAME
 
-          COUNT=$(echo "$RESPONSE" | jq '.selected | length')
-          echo "Total de eventos: $COUNT"
-
           mkdir -p shared
           cp $FILENAME shared/
 
@@ -50,54 +47,57 @@ jobs:
           retention-days: 1
 
   procesar-eventos:
-    needs: buscar-y-preparar
+    needs: fetch-and-prepare
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        index: ${{ fromJson(needs.buscar-y-preparar.outputs.matrix) }}
+        index: ${{ fromJson(needs.fetch-and-prepare.outputs.matrix) }}
     env:
       LANG: ${{ vars.LANG }}
       MM: ${{ github.event.inputs.MM }}
       DD: ${{ github.event.inputs.DD }}
 
     steps:
+      - name: Instalar wkhtmltopdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf
+
       - name: Descargar JSON desde artefacto
         uses: actions/download-artifact@v4
         with:
           name: wikimedia-json
           path: shared/
 
-      - name: Extraer datos del evento y guardar URL
+      - name: Extraer datos del evento
         id: evento
         run: |
           LANGUAGE=$LANG
           INDEX=${{ matrix.index }}
           FILENAME=wikimedia_${LANGUAGE}_${MM}-${DD}.json
 
-          RESPONSE=$(cat shared/$FILENAME)
-          EVENT=$(jq ".selected[$INDEX]" <<< "$RESPONSE")
-
-          TITLE=$(echo "$EVENT" | jq -r '.pages[0].title // "Sin título"')
+          EVENT=$(jq ".selected[$INDEX]" shared/$FILENAME)
+          TITLE=$(echo "$EVENT" | jq -r '.pages[0].title // "Sin_título"')
           URL=$(echo "$EVENT" | jq -r '.pages[0].content_urls.desktop.page // empty')
 
           if [ -z "$URL" ]; then
-            echo "No URL para evento #$INDEX"
-            exit 0
+            echo "No URL para evento #$INDEX, se omite."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            SAFE_TITLE=$(echo "$TITLE" | tr ' /' '__')
+            echo "title=$SAFE_TITLE" >> "$GITHUB_OUTPUT"
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-          SAFE_TITLE=$(echo "$TITLE" | tr ' /' '__')
-          echo "title=$SAFE_TITLE" >> "$GITHUB_OUTPUT"
-          echo "url=$URL" >> "$GITHUB_OUTPUT"
-
-      - name: Generar PDF con Webpage-to-PDF Action
-        uses: misaelnieto/web_to_pdf_action@v0.3.1
-        with:
-          webPageURL: ${{ steps.evento.outputs.url }}
-          outputFile: pdfs/${{ steps.evento.outputs.title }}.pdf
-          usePuppeteer: true
-          useScreen: true
+      - name: Generar PDF desde URL con wkhtmltopdf
+        if: steps.evento.outputs.skip != 'true'
+        run: |
+          mkdir -p pdfs
+          wkhtmltopdf "${{ steps.evento.outputs.url }}" "pdfs/${{ steps.evento.outputs.title }}.pdf"
 
       - name: Subir PDF individual
+        if: steps.evento.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: pdf-${{ matrix.index }}
@@ -125,5 +125,3 @@ jobs:
         with:
           name: Eventos-Wikipedia-PDFs
           path: output/
-
-
