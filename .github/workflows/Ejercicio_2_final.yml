@@ -89,11 +89,13 @@ jobs:
           echo "title=$SAFE_TITLE" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
-      - name: Generar PDF con Puppeteer
-        uses: benawad/puppeteer-url-to-pdf-action@v1
+      - name: Generar PDF con Webpage-to-PDF Action
+        uses: misaelnieto/web_to_pdf_action@v0.3.1
         with:
-          url: ${{ steps.evento.outputs.url }}
-          path: pdfs/${{ steps.evento.outputs.title }}.pdf
+          webPageURL: ${{ steps.evento.outputs.url }}
+          outputFile: pdfs/${{ steps.evento.outputs.title }}.pdf
+          usePuppeteer: true
+          useScreen: true
 
       - name: Subir PDF individual
         uses: actions/upload-artifact@v4
@@ -123,4 +125,5 @@ jobs:
         with:
           name: Eventos-Wikipedia-PDFs
           path: output/
+
 
