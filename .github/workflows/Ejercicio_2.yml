@@ -16,33 +16,50 @@ jobs:
   fetch-wikimedia:
     runs-on: ubuntu-latest
     env:
-      LANG: ${{ vars.LANG }}	
+      LANG: ${{ vars.LANG }}
 
     steps:
-      - name: Obtener datos y contar noticias destacadas con su nombre
+      - name: Configurar variables de fecha y cache
+        id: vars
         run: |
-          set -x  # Habilita modo depuración para ver errores línea por línea
+          echo "LANGUAGE=$LANG" >> $GITHUB_ENV
+          echo "MONTH=${{ github.event.inputs.MM }}" >> $GITHUB_ENV
+          echo "DAY=${{ github.event.inputs.DD }}" >> $GITHUB_ENV
+          echo "FILENAME=wikimedia_${LANG}_${{ github.event.inputs.MM }}-${{ github.event.inputs.DD }}.json" >> $GITHUB_ENV
+          echo "CACHE_KEY=wikimedia_cache_${LANG}_${{ github.event.inputs.MM }}-${{ github.event.inputs.DD }}" >> $GITHUB_ENV
 
-          LANGUAGE=$LANG
-          MONTH=${{ github.event.inputs.MM }}
-          DAY=${{ github.event.inputs.DD }}
+      - name: Restaurar cache si existe
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.FILENAME }}
+          key: ${{ env.CACHE_KEY }}
 
-          RESPONSE=$(curl --silent --request GET \
-            --url "https://api.wikimedia.org/feed/v1/wikipedia/${LANGUAGE}/onthisday/selected/${MONTH}/${DAY}" \
-            --header "accept: application/json" \
-            --header "User-Agent: GitHubActionBot/1.0 (email@pruebas.com)")
+      - name: Consultar API solo si no hay cache
+        run: |
+          if [ -f "${FILENAME}" ]; then
+            echo "Cache encontrado: ${FILENAME}"
+          else
+            echo "Cache no encontrado. Consultando API..."
+            RESPONSE=$(curl --silent --request GET \
+              --url "https://api.wikimedia.org/feed/v1/wikipedia/${LANGUAGE}/onthisday/selected/${MONTH}/${DAY}" \
+              --header "accept: application/json" \
+              --header "User-Agent: GitHubActionBot/1.0 (email@pruebas.com)")
 
-          echo "Respuesta recibida:"
-          echo "$RESPONSE"
+            if [ -z "$RESPONSE" ]; then
+              echo "ERROR: La respuesta está vacía. Falló la consulta."
+              exit 1
+            fi
 
-          # Validar que la respuesta no esté vacía
-          if [ -z "$RESPONSE" ]; then
-            echo "ERROR: La respuesta está vacía. Falló la consulta."
-            exit 1
+            echo "$RESPONSE" > "${FILENAME}"
+            echo "Respuesta guardada en archivo: ${FILENAME}"
           fi
 
-          COUNT=$(echo "$RESPONSE" | jq '.selected | length')
-          echo "Número de eventos destacados en esta fecha son: $COUNT"
+      - name: Leer y procesar el archivo cacheado o generado
+        run: |
+          RESPONSE=$(cat "${FILENAME}")
 
-          echo "Eventos y enlaces de cada artículo:"
+          COUNT=$(echo "$RESPONSE" | jq '.selected | length')
+          echo "Número de eventos destacados: $COUNT"
+
+          echo "Eventos destacados:"
           echo "$RESPONSE" | jq -r '.selected[] | "\(.text)\nTítulo: \(.pages[0].title)\nURL: \(.pages[0].content_urls.desktop.page)\n"'
