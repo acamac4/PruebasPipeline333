@@ -85,8 +85,11 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             SAFE_TITLE=$(echo "$TITLE" | tr ' /' '__')
+            FILENAME_PDF="${MM}-${DD}-${SAFE_TITLE}.pdf"
+
             echo "title=$SAFE_TITLE" >> "$GITHUB_OUTPUT"
             echo "url=$URL" >> "$GITHUB_OUTPUT"
+            echo "filename=$FILENAME_PDF" >> "$GITHUB_OUTPUT"
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -94,7 +97,7 @@ jobs:
         if: steps.evento.outputs.skip != 'true'
         run: |
           mkdir -p pdfs
-          wkhtmltopdf "${{ steps.evento.outputs.url }}" "pdfs/${{ steps.evento.outputs.title }}.pdf"
+          wkhtmltopdf "${{ steps.evento.outputs.url }}" "pdfs/${{ steps.evento.outputs.filename }}"
 
       - name: Subir PDF individual
         if: steps.evento.outputs.skip != 'true'
@@ -125,3 +128,4 @@ jobs:
         with:
           name: Eventos-Wikipedia-PDFs
           path: output/
+
