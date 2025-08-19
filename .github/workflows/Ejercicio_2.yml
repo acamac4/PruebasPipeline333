@@ -1,0 +1,48 @@
+name: Consulta_Wikipedia
+
+on:
+  workflow_dispatch:
+    inputs:
+      MM:
+        description: 'Mes (MM)'
+        required: true
+        default: '01'
+      DD:
+        description: 'Día (DD)'
+        required: true
+        default: '01'
+
+jobs:
+  fetch-wikimedia:
+    runs-on: ubuntu-latest
+    env:
+      LANG: ${{ vars.LANG }}	
+
+    steps:
+      - name: Obtener datos y contar noticias destacadas con su nombre
+        run: |
+          set -x  # Habilita modo depuración para ver errores línea por línea
+
+          LANGUAGE=$LANG
+          MONTH=${{ github.event.inputs.MM }}
+          DAY=${{ github.event.inputs.DD }}
+
+          RESPONSE=$(curl --silent --request GET \
+            --url "https://api.wikimedia.org/feed/v1/wikipedia/${LANGUAGE}/onthisday/selected/${MONTH}/${DAY}" \
+            --header "accept: application/json" \
+            --header "User-Agent: GitHubActionBot/1.0 (email@pruebas.com)")
+
+          echo "Respuesta recibida:"
+          echo "$RESPONSE"
+
+          # Validar que la respuesta no esté vacía
+          if [ -z "$RESPONSE" ]; then
+            echo "ERROR: La respuesta está vacía. Falló la consulta."
+            exit 1
+          fi
+
+          COUNT=$(echo "$RESPONSE" | jq '.selected | length')
+          echo "Número de eventos destacados en esta fecha son: $COUNT"
+
+          echo "Eventos y enlaces de cada artículo:"
+          echo "$RESPONSE" | jq -r '.selected[] | "\(.text)\nTítulo: \(.pages[0].title)\nURL: \(.pages[0].content_urls.desktop.page)\n"'
