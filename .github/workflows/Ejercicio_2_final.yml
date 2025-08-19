@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        index: ${{ fromJson(needs.fetch-and-prepare.outputs.matrix) }}
+        index: ${{ fromJson(needs.buscar-y-preparar.outputs.matrix) }}
     env:
       LANG: ${{ vars.LANG }}
       MM: ${{ github.event.inputs.MM }}
@@ -123,3 +123,4 @@ jobs:
         with:
           name: Eventos-Wikipedia-PDFs
           path: output/
+
