@@ -1,0 +1,132 @@
+name: Consulta y PDF de Wikipedia
+
+on:
+  workflow_dispatch:
+    inputs:
+      MM:
+        description: 'Mes (MM)'
+        required: true
+        default: '01'
+      DD:
+        description: 'Día (DD)'
+        required: true
+        default: '01'
+
+jobs:
+  fetch-and-prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    env:
+      LANG: ${{ vars.LANG }}
+
+    steps:
+      - name: Obtener eventos y construir matriz
+        id: set-matrix
+        run: |
+          LANGUAGE=$LANG
+          MONTH=${{ github.event.inputs.MM }}
+          DAY=${{ github.event.inputs.DD }}
+          FILENAME=wikimedia_${LANGUAGE}_${MONTH}-${DAY}.json
+
+          URL="https://api.wikimedia.org/feed/v1/wikipedia/${LANGUAGE}/onthisday/selected/${MONTH}/${DAY}"
+          RESPONSE=$(curl -s "$URL")
+          echo "$RESPONSE" > $FILENAME
+
+          COUNT=$(echo "$RESPONSE" | jq '.selected | length')
+          echo "Total de eventos: $COUNT"
+
+          mkdir -p shared
+          cp $FILENAME shared/
+
+          MATRIX=$(jq -c '[.selected | to_entries | .[].key | tostring]' <<< "$RESPONSE")
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+      - name: Guardar JSON como artefacto temporal
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikimedia-json
+          path: shared/
+          retention-days: 1
+
+  procesar-eventos:
+    needs: fetch-and-prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        index: ${{ fromJson(needs.fetch-and-prepare.outputs.matrix) }}
+    env:
+      LANG: ${{ vars.LANG }}
+      MM: ${{ github.event.inputs.MM }}
+      DD: ${{ github.event.inputs.DD }}
+
+    steps:
+      - name: Descargar JSON desde artefacto
+        uses: actions/download-artifact@v4
+        with:
+          name: wikimedia-json
+          path: shared/
+
+      - name: Extraer datos del evento y guardar URL
+        id: evento
+        run: |
+          LANGUAGE=$LANG
+          INDEX=${{ matrix.index }}
+          FILENAME=wikimedia_${LANGUAGE}_${MM}-${DD}.json
+
+          RESPONSE=$(cat shared/$FILENAME)
+          EVENT=$(jq ".selected[$INDEX]" <<< "$RESPONSE")
+
+          TITLE=$(echo "$EVENT" | jq -r '.pages[0].title // "Sin título"')
+          URL=$(echo "$EVENT" | jq -r '.pages[0].content_urls.desktop.page // empty')
+
+          if [ -z "$URL" ]; then
+            echo "No URL para evento #$INDEX"
+            exit 0
+          fi
+
+          SAFE_TITLE=$(echo "$TITLE" | tr ' /' '__')
+          echo "title=$SAFE_TITLE" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Generar PDF con Puppeteer
+        uses: benawad/puppeteer-url-to-pdf-action@v1
+        with:
+          url: ${{ steps.evento.outputs.url }}
+          path: pdfs/${{ steps.evento.outputs.title }}.pdf
+
+      - name: Subir PDF individual
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf-${{ matrix.index }}
+          path: pdfs/
+          retention-days: 1
+
+  empaquetar-todos-los-pdfs:
+    needs: procesar-eventos
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Descargar todos los PDFs
+        uses: actions/download-artifact@v4
+        with:
+          path: all_pdfs/
+
+      - name: Crear ZIP con todos los PDFs
+        run: |
+          mkdir -p output
+          zip -r output/eventos_wikipedia_${{ github.event.inputs.MM }}-${{ github.event.inputs.DD }}.zip all_pdfs/
+
+      - name: Subir archivo ZIP como artefacto final
+        uses: actions/upload-artifact@v4
+        with:
+          name: Eventos-Wikipedia-PDFs
+          path: output/
+
+	
+
+
+
+
+
