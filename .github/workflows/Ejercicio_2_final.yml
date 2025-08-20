@@ -49,9 +49,11 @@ jobs:
   procesar-eventos:
     needs: fetch-and-prepare
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     strategy:
+      fail-fast: false
       matrix:
-        index: ${{ fromJson(needs.fetch-and-prepare.outputs.matrix) }}
+        index: ${{ fromJson(needs.fetch-and-prepare.outputs.matrix) }}  
     env:
       LANG: ${{ vars.LANG }}
       MM: ${{ github.event.inputs.MM }}
@@ -128,4 +130,5 @@ jobs:
         with:
           name: Eventos-Wikipedia-PDFs
           path: output/
+
 
