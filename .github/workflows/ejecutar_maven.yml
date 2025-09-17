@@ -1,0 +1,25 @@
+name: Ejecutar Maven Manualmente
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v3
+
+      - name: Configurar Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'  # o la versión que uses
+
+      - name: Ejecutar Maven clean install
+        run: mvn clean install
+
+      # Opcional: empaquetar si quieres un .jar o .war
+      - name: Ejecutar Maven package
+        run: mvn package
