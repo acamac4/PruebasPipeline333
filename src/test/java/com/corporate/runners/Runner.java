@@ -7,8 +7,8 @@ import org.junit.runner.RunWith;
 @RunWith(CucumberWithSerenity.class)
 @CucumberOptions(
         features = "src/test/resources/features/",
-        tags = "@loginUAT",
-        //tags = "@UATuna_muchas",
+        //tags = "@loginUAT",
+        tags = "@UATuna_muchas",
         glue = "com.corporate.stepDefinitions",
         snippets = CucumberOptions.SnippetType.CAMELCASE
 )

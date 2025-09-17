@@ -21,9 +21,12 @@ public class LoginUAT implements Task {
         try {
             CapturaPantalla.capturarPantalla("Imagen_LoginUAT_1");
             actor.attemptsTo(
-                    Enter.theValue(excel.leerDatosExcel(rutaExcel, "Hoja2", 1, 0)).into(TXT_COMPANIA_UAT),
-                    Enter.theValue(excel.leerDatosExcel(rutaExcel, "Hoja2", 1, 1)).into(TXT_USUARIO_UAT),
-                    Enter.theValue(excel.leerDatosExcel(rutaExcel, "Hoja2", 1, 2)).into(TXT_CONTRASENA_UAT),
+//                    Enter.theValue(excel.leerDatosExcel(rutaExcel, "Hoja2", 1, 0)).into(TXT_COMPANIA_UAT),
+//                    Enter.theValue(excel.leerDatosExcel(rutaExcel, "Hoja2", 1, 1)).into(TXT_USUARIO_UAT),
+//                    Enter.theValue(excel.leerDatosExcel(rutaExcel, "Hoja2", 1, 2)).into(TXT_CONTRASENA_UAT),
+                    Enter.theValue("CB000000117").into(TXT_COMPANIA_UAT),
+                    Enter.theValue("ACAMAC4").into(TXT_USUARIO_UAT),
+                    Enter.theValue("Corporate39*").into(TXT_CONTRASENA_UAT),
                     Click.on(TXT_LENGUAJE_UAT),
                     Click.on(By.xpath("//*[@id='model_language_option_es_co']"))
             );
