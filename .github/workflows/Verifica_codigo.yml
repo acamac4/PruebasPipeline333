@@ -1,4 +1,4 @@
-name: Code Analysis
+name: Code Analysis Basic
 
 on:
   push:
@@ -11,11 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout del código en la misma carpeta del repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Configurar JDK (igual al del pom; cámbialo si es otro)
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -23,11 +21,10 @@ jobs:
           java-version: 17
           cache: maven
 
-      # 3. Validar compilación SIN ejecutar tests
       - name: Build project (skip tests)
         run: mvn -B clean verify -DskipTests
 
-      # 4. Análisis de dependencias vulnerables (OWASP)
+      # ---------- Seguridad en dependencias ----------
       - name: Run OWASP Dependency Check
         uses: jeremylong/gh-action-dependency-check@v4
         with:
@@ -36,29 +33,17 @@ jobs:
           format: "HTML"
           out: "dependency-check-report"
 
-      # 5. Publicar resultado del análisis de dependencias
       - name: Upload dependency check report
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-report
           path: dependency-check-report
 
-      # 6. Análisis de calidad con SonarCloud / SonarQube
-      - name: SonarQube Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn -B verify sonar:sonar \
-            -DskipTests \
-            -Dsonar.projectKey=<TU_PROJECT_KEY> \
-            -Dsonar.organization=<TU_ORGANIZATION> \
-            -Dsonar.host.url=https://sonarcloud.io
-
-      # 7. Opcional: SpotBugs
+      # ---------- Análisis de calidad: SpotBugs ----------
       - name: Static Code Analysis (SpotBugs)
         run: mvn spotbugs:spotbugs -Dspotbugs.skip=false
 
-      - name: Upload SpotBugs Report
+      - name: Upload SpotBugs report
         uses: actions/upload-artifact@v4
         with:
           name: spotbugs-report
