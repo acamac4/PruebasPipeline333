@@ -1,0 +1,72 @@
+name: Sumar dos números y mostrar mensaje
+ 
+on:
+
+  push:
+
+    branches:
+
+      - 'test/**'  # 5. Filtro para ramas que empiecen con test/
+ 
+env:
+
+  NUM1: ${{ secrets.NUM1 }}  # 6. Variables de entorno del repositorio (puedes usar secrets o envs)
+
+  NUM2: ${{ secrets.NUM2 }}
+ 
+jobs:
+
+  suma:
+
+    name: Calcular la suma
+
+    runs-on: ubuntu-latest  # 3. Runner
+
+    steps:
+
+      - name: Realizar suma
+
+        run: |
+
+          echo "Calculando suma de $NUM1 y $NUM2"
+
+          SUM=$((NUM1 + NUM2))
+
+          echo "Suma: $SUM"
+
+          echo "SUMA_RESULTADO=$SUM" >> $GITHUB_ENV  # Pasamos a siguiente job
+
+        env:
+
+          NUM1: ${{ env.NUM1 }}
+
+          NUM2: ${{ env.NUM2 }}
+ 
+  verificar-resultado:
+
+    name: Verificar si la suma es mayor que 10
+
+    runs-on: ubuntu-latest
+
+    needs: suma  # 7. Dependencia entre jobs
+
+    steps:
+
+      - name: Mostrar mensaje basado en el resultado
+
+        run: |
+
+          if [ "$SUMA_RESULTADO" -gt 10 ]; then
+
+            echo "La suma es mayor que 10: $SUMA_RESULTADO"
+
+          else
+
+            echo "La suma es menor o igual a 10: $SUMA_RESULTADO"
+
+          fi
+
+        env:
+
+          SUMA_RESULTADO: ${{ env.SUMA_RESULTADO }}  # Se hereda del job anterior
+ 
