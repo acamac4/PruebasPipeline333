@@ -23,7 +23,7 @@ jobs:
 
       # ---------- Seguridad en dependencias ----------
       - name: Run OWASP Dependency Check
-        uses: jeremylong/gh-action-dependency-check@v4
+        uses:  dependency-check/gh-action@v4
         with:
           project: "mi-proyecto-serenity"
           path: "."
