@@ -19,25 +19,20 @@ jobs:
           cache: maven
 
       - name: Build project (skip tests)
-        run: mvn -B clean verify -DskipTests
+        run: mvn clean verify -DskipTests
 
-      # ---------- Seguridad en dependencias ----------
-      - name: Run OWASP Dependency Check
-        uses:  dependency-check/Dependency-Check_Action@main
-        with:
-          project: "mi-proyecto-serenity"
-          path: "."
-          format: "HTML"
-          out: "dependency-check-report"
+      # Ejecutar OWASP Dependency Check usando Maven plugin
+      - name: Run OWASP Dependency Check via Maven plugin
+        run: mvn org.owasp:dependency-check-maven:check -Dformat=HTML
 
-      - name: Upload dependency check report
+      - name: Upload OWASP Dependency Check report
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-report
-          path: dependency-check-report
+          path: target/dependency-check-report.html
 
-      # ---------- Análisis de calidad: SpotBugs ----------
-      - name: Static Code Analysis (SpotBugs)
+      # SpotBugs análisis estático
+      - name: Run SpotBugs
         run: mvn spotbugs:spotbugs -Dspotbugs.skip=false
 
       - name: Upload SpotBugs report
