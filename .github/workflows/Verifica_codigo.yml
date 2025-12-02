@@ -33,7 +33,7 @@ jobs:
         run: mvn dependency-check:update-only
 
       - name: Run OWASP Dependency Check
-        run: mvn dependency-check:check -Dformat=HTML
+        run: mvn dependency-check:check -Danalyzer.nvd.enabled
 
       - name: Upload OWASP report
         uses: actions/upload-artifact@v4
