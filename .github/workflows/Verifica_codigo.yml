@@ -22,8 +22,8 @@ jobs:
       - name: Build project (skip tests)
         run: mvn clean verify -DskipTests
 
-      - name: Run OWASP Dependency Check fast
-        run: mvn dependency-check:check -Dformat=HTML -DdataMirroring=false -DautoUpdate=false
+      - name: Run OWASP Dependency Check
+        run: mvn dependency-check:check -Dformat=HTML -DdataMirroring=false -DautoUpdate=true
 
       - name: Upload OWASP report
         uses: actions/upload-artifact@v4
