@@ -1,3 +1,4 @@
+
 name: Code Analysis Basic
 
 on:
@@ -6,7 +7,7 @@ on:
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -19,11 +20,20 @@ jobs:
           java-version: 17
           cache: maven
 
+      - name: Cache OWASP DB
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: owasp-db-cache
+
       - name: Build project (skip tests)
         run: mvn clean verify -DskipTests
 
+      - name: Update OWASP Dependency Check DB
+        run: mvn dependency-check:update
+
       - name: Run OWASP Dependency Check
-        run: mvn dependency-check:check -Dformat=HTML -DdataMirroring=false -DautoUpdate=true
+        run: mvn dependency-check:check -Dformat=HTML
 
       - name: Upload OWASP report
         uses: actions/upload-artifact@v4
@@ -34,8 +44,12 @@ jobs:
       - name: Run SpotBugs
         run: mvn spotbugs:spotbugs -Dspotbugs.skip=false
 
+      
       - name: Upload SpotBugs report
         uses: actions/upload-artifact@v4
         with:
           name: spotbugs-report
           path: target/spotbugsXml.xml
+
+
+
