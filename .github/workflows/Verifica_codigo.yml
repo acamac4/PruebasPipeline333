@@ -23,7 +23,7 @@ jobs:
         run: mvn clean verify -DskipTests
 
       - name: Run OWASP Dependency Check fast
-        run: mvn org.owasp:dependency-check-maven:check \
+        run: mvn org.owasp:dependency-check-maven:check -- \
               -Dformat=HTML \
               -DdataMirroring=false \
               -DautoUpdate=false
