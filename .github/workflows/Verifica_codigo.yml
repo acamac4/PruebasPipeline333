@@ -30,7 +30,7 @@ jobs:
         run: mvn clean verify -DskipTests
 
       - name: Update OWASP Dependency Check DB
-        run: mvn dependency-check:update
+        run: mvn dependency-check:update-only
 
       - name: Run OWASP Dependency Check
         run: mvn dependency-check:check -Dformat=HTML
@@ -44,12 +44,11 @@ jobs:
       - name: Run SpotBugs
         run: mvn spotbugs:spotbugs -Dspotbugs.skip=false
 
-      
       - name: Upload SpotBugs report
         uses: actions/upload-artifact@v4
         with:
           name: spotbugs-report
-          path: target/spotbugsXml.xml
+
 
 
 
