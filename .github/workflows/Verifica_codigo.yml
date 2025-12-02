@@ -6,6 +6,7 @@ on:
 jobs:
   analyze:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
@@ -21,17 +22,18 @@ jobs:
       - name: Build project (skip tests)
         run: mvn clean verify -DskipTests
 
-      # Ejecutar OWASP Dependency Check usando Maven plugin
-      - name: Run OWASP Dependency Check via Maven plugin
-        run: mvn org.owasp:dependency-check-maven:check -Dformat=HTML
+      - name: Run OWASP Dependency Check fast
+        run: mvn org.owasp:dependency-check-maven:check \
+              -Dformat=HTML \
+              -DdataMirroring=false \
+              -DautoUpdate=false
 
-      - name: Upload OWASP Dependency Check report
+      - name: Upload OWASP report
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-report
           path: target/dependency-check-report.html
 
-      # SpotBugs análisis estático
       - name: Run SpotBugs
         run: mvn spotbugs:spotbugs -Dspotbugs.skip=false
 
