@@ -216,7 +216,7 @@
                 <configuration>
                     <format>HTML</format>
                     <dataMirroring>false</dataMirroring>
-                    <autoUpdate>false</autoUpdate>
+                    <autoUpdate>true</autoUpdate>
                     <failBuildOnCVSS>0</failBuildOnCVSS>
                 </configuration>
             </plugin>
