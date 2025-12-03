@@ -22,8 +22,8 @@ jobs:
       - name: Build project (skip tests)
         run: mvn clean verify -DskipTests
 
-      - name: Run OWASP Dependency Check (NVD disabled)
-        run: mvn dependency-check:check -Dformat=HTML -Danalyzer.nvd.enabled=false
+      - name: Run OWASP Dependency Check
+        run: mvn dependency-check:check -Dformat=HTML -DautoUpdate=true
 
       - name: Upload OWASP report
         uses: actions/upload-artifact@v4
