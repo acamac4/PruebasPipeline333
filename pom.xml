@@ -214,11 +214,10 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>9.0.9</version>
                 <configuration>
-                    <format>HTML</format>
-                    <dataMirroring>false</dataMirroring>
-                    <autoUpdate>true</autoUpdate>
-                    <failBuildOnCVSS>0</failBuildOnCVSS>
-                </configuration>
+                      <format>HTML</format>
+                      <failBuildOnCVSS>0</failBuildOnCVSS>
+                      <autoUpdate>true</autoUpdate>
+               </configuration>
             </plugin>
 
         </plugins>
